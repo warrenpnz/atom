@@ -185,8 +185,9 @@ class TextEditor extends Model
     @softWrapAtPreferredLineLength ?= false
     @preferredLineLength ?= 80
 
-    @buffer ?= new TextBuffer({shouldDestroyOnFileDelete: ->
-      atom.config.get('core.closeDeletedFileTabs')})
+    @buffer ?= new TextBuffer({
+      shouldDestroyOnFileDelete: -> atom.config.get('core.closeDeletedFileTabs')
+    })
     @tokenizedBuffer ?= new TokenizedBuffer({
       grammar, tabLength, @buffer, @largeFileMode, @assert
     })
@@ -2981,14 +2982,16 @@ class TextEditor extends Model
   # Returns a {Boolean} or undefined if no non-comment lines had leading
   # whitespace.
   usesSoftTabs: ->
-    for bufferRow in [0..@buffer.getLastRow()]
-      continue if @tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
+    not @buffer.buffer.searchSync(/^\t/)
 
-      line = @buffer.lineForRow(bufferRow)
-      return true  if line[0] is ' '
-      return false if line[0] is '\t'
-
-    undefined
+    # for bufferRow in [0..@buffer.getLastRow()]
+    #   continue if @tokenizedBuffer.tokenizedLines[bufferRow]?.isComment()
+    #
+    #   line = @buffer.lineForRow(bufferRow)
+    #   return true  if line[0] is ' '
+    #   return false if line[0] is '\t'
+    #
+    # undefined
 
   # Extended: Get the text representing a single level of indent.
   #
