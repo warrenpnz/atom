@@ -74,6 +74,7 @@ describe "TextEditor", ->
       expect(editor2.getInvisibles()).toEqual(editor.getInvisibles())
       expect(editor2.getEditorWidthInChars()).toBe(editor.getEditorWidthInChars())
       expect(editor2.displayLayer.tabLength).toBe(editor2.getTabLength())
+      expect(editor2.displayLayer.softWrapColumn).toBe(editor2.getSoftWrapColumn())
 
   describe "when the editor is constructed with the largeFileMode option set to true", ->
     it "loads the editor but doesn't tokenize", ->
@@ -134,7 +135,7 @@ describe "TextEditor", ->
       returnedPromise = editor.update({
         tabLength: 6, softTabs: false, softWrapped: true, editorWidthInChars: 40,
         showInvisibles: false, mini: false, lineNumberGutterVisible: false, scrollPastEnd: true,
-        autoHeight: false
+        autoHeight: false, maxScreenLineLength: 1000
       })
 
       expect(returnedPromise).toBe(atom.views.getNextUpdatePromise())
@@ -148,6 +149,7 @@ describe "TextEditor", ->
       expect(editor.isLineNumberGutterVisible()).toBe(false)
       expect(editor.getScrollPastEnd()).toBe(true)
       expect(editor.getAutoHeight()).toBe(false)
+      expect(editor.getSoftWrapColumn()).toBe(1000)
 
   describe "title", ->
     describe ".getTitle()", ->
@@ -6029,4 +6031,3 @@ describe "TextEditor", ->
         maxScreenLineLength: 1500
       })
       expect(editor.maxScreenLineLength()).toBe 1500
-
