@@ -6026,8 +6026,8 @@ describe "TextEditor", ->
 
   describe 'setMaxScreenLineLength', ->
     it "sets the maximum line length in the editor before soft wrapping is forced", ->
-      expect(editor.maxScreenLineLength()).toBe 500
+      expect(editor.getSoftWrapColumn()).toBe(500)
       editor.update({
         maxScreenLineLength: 1500
       })
-      expect(editor.maxScreenLineLength()).toBe 1500
+      expect(editor.getSoftWrapColumn()).toBe(1500)
