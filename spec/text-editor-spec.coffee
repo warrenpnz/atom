@@ -149,7 +149,6 @@ describe "TextEditor", ->
       expect(editor.isLineNumberGutterVisible()).toBe(false)
       expect(editor.getScrollPastEnd()).toBe(true)
       expect(editor.getAutoHeight()).toBe(false)
-      expect(editor.getSoftWrapColumn()).toBe(1000)
 
   describe "title", ->
     describe ".getTitle()", ->
