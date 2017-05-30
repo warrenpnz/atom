@@ -288,6 +288,7 @@ class TextEditor extends Model
         when 'maxScreenLineLength'
           if value isnt @maxScreenLineLength
             @maxScreenLineLength = value
+            displayLayerParams.softWrapColumn = @getSoftWrapColumn()
 
         when 'mini'
           if value isnt @mini

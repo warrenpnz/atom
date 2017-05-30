@@ -558,7 +558,6 @@ describe('TextEditorRegistry', function () {
       registry.maintainConfig(editor)
       await initialPackageActivation
       expect(editor.getSoftWrapColumn()).toBe(500)
-
     })
 
     it('sets the preferred line length based on the config', async function () {
