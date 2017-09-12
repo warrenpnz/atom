@@ -22,9 +22,12 @@ describe "the `grammars` global", ->
       atom.packages.activatePackage('language-git')
 
   afterEach ->
-    atom.packages.deactivatePackages()
-    atom.packages.unloadPackages()
-    temp.cleanupSync()
+    waitsForPromise ->
+      atom.packages.deactivatePackages()
+    runs ->
+      atom.packages.unloadPackages()
+      try
+        temp.cleanupSync()
 
   describe ".selectGrammar(filePath)", ->
     it "always returns a grammar", ->

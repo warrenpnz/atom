@@ -506,14 +506,29 @@ class Package
     @configSchemaRegisteredOnActivate = false
     @deactivateResources()
     @deactivateKeymaps()
-    if @mainActivated
-      try
-        @mainModule?.deactivate?()
-        @mainModule?.deactivateConfig?()
-        @mainActivated = false
-        @mainInitialized = false
-      catch e
-        console.error "Error deactivating package '#{@name}'", e.stack
+
+    unless @mainActivated
+      @emitter.emit 'did-deactivate'
+      return
+
+    try
+      deactivationResult = @mainModule?.deactivate?()
+    catch e
+      console.error "Error deactivating package '#{@name}'", e.stack
+
+    # We support then-able async promises as well as sync ones from deactivate
+    if deactivationResult?.then is 'function'
+      deactivationResult.then => @afterDeactivation()
+    else
+      @afterDeactivation()
+
+  afterDeactivation: ->
+    try
+      @mainModule?.deactivateConfig?()
+    catch e
+      console.error "Error deactivating package '#{@name}'", e.stack
+    @mainActivated = false
+    @mainInitialized = false
     @emitter.emit 'did-deactivate'
 
   deactivateResources: ->
@@ -751,7 +766,7 @@ class Package
     "installed-packages:#{@name}:#{@metadata.version}:build-error"
 
   getIncompatibleNativeModulesStorageKey: ->
-    electronVersion = process.versions['electron'] ? process.versions['atom-shell']
+    electronVersion = process.versions.electron
     "installed-packages:#{@name}:#{@metadata.version}:electron-#{electronVersion}:incompatible-native-modules"
 
   getCanDeferMainModuleRequireStorageKey: ->

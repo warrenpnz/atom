@@ -65,6 +65,7 @@ beforeEach ->
 
   window.resetTimeouts()
   spyOn(_._, "now").andCallFake -> window.now
+  spyOn(Date, 'now').andCallFake(-> window.now)
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
 
@@ -107,10 +108,14 @@ beforeEach ->
 afterEach ->
   ensureNoDeprecatedFunctionCalls()
   ensureNoDeprecatedStylesheets()
-  atom.reset()
-  document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
-  warnIfLeakingPathSubscriptions()
-  waits(0) # yield to ui thread to make screen update more frequently
+
+  waitsForPromise ->
+    atom.reset()
+
+  runs ->
+    document.getElementById('jasmine-content').innerHTML = '' unless window.debugContent
+    warnIfLeakingPathSubscriptions()
+    waits(0) # yield to ui thread to make screen update more frequently
 
 warnIfLeakingPathSubscriptions = ->
   watchedPaths = pathwatcher.getWatchedPaths()
@@ -179,6 +184,7 @@ jasmine.useRealClock = ->
   jasmine.unspy(window, 'setTimeout')
   jasmine.unspy(window, 'clearTimeout')
   jasmine.unspy(_._, 'now')
+  jasmine.unspy(Date, 'now')
 
 # The clock is halfway mocked now in a sad and terrible way... only setTimeout
 # and clearTimeout are included. This method will also include setInterval. We

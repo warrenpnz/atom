@@ -84,20 +84,20 @@ function compileFileAtPath (compiler, filePath, extension) {
   var sourceCode = fs.readFileSync(filePath, 'utf8')
   if (compiler.shouldCompile(sourceCode, filePath)) {
     var cachePath = compiler.getCachePath(sourceCode, filePath)
-    var compiledCode = readCachedJavascript(cachePath)
+    var compiledCode = readCachedJavaScript(cachePath)
     if (compiledCode != null) {
       cacheStats[extension].hits++
     } else {
       cacheStats[extension].misses++
       compiledCode = compiler.compile(sourceCode, filePath)
-      writeCachedJavascript(cachePath, compiledCode)
+      writeCachedJavaScript(cachePath, compiledCode)
     }
     return compiledCode
   }
   return sourceCode
 }
 
-function readCachedJavascript (relativeCachePath) {
+function readCachedJavaScript (relativeCachePath) {
   var cachePath = path.join(cacheDirectory, relativeCachePath)
   if (fs.isFileSync(cachePath)) {
     try {
@@ -107,23 +107,26 @@ function readCachedJavascript (relativeCachePath) {
   return null
 }
 
-function writeCachedJavascript (relativeCachePath, code) {
+function writeCachedJavaScript (relativeCachePath, code) {
   var cachePath = path.join(cacheDirectory, relativeCachePath)
   fs.writeFileSync(cachePath, code, 'utf8')
 }
 
 var INLINE_SOURCE_MAP_REGEXP = /\/\/[#@]\s*sourceMappingURL=([^'"\n]+)\s*$/mg
 
-let snapshotSourceMapConsumer
-if (global.isGeneratingSnapshot) {
-  // Warm up the source map consumer to efficiently translate positions when
-  // generating stack traces containing a file that was snapshotted.
-  const {SourceMapConsumer} = require('source-map')
-  snapshotSourceMapConsumer = new SourceMapConsumer(snapshotAuxiliaryData.sourceMap) // eslint-disable-line no-undef
-  snapshotSourceMapConsumer.originalPositionFor({line: 42, column: 0})
-}
-
 exports.install = function (resourcesPath, nodeRequire) {
+  const snapshotSourceMapConsumer = {
+    originalPositionFor ({line, column}) {
+      const {relativePath, row} = snapshotResult.translateSnapshotRow(line)
+      return {
+        column,
+        line: row,
+        source: path.join(resourcesPath, 'app', 'static', relativePath),
+        name: null
+      }
+    }
+  }
+
   sourceMapSupport.install({
     handleUncaughtExceptions: false,
 
@@ -132,10 +135,7 @@ exports.install = function (resourcesPath, nodeRequire) {
     // code from our cache directory.
     retrieveSourceMap: function (filePath) {
       if (filePath === '<embedded>') {
-        return {
-          map: snapshotSourceMapConsumer,
-          url: path.join(resourcesPath, 'app', 'static', 'index.js')
-        }
+        return {map: snapshotSourceMapConsumer}
       }
 
       if (!cacheDirectory || !fs.isFileSync(filePath)) {
@@ -153,7 +153,7 @@ exports.install = function (resourcesPath, nodeRequire) {
       if (!compiler) compiler = COMPILERS['.js']
 
       try {
-        var fileData = readCachedJavascript(compiler.getCachePath(sourceCode, filePath))
+        var fileData = readCachedJavaScript(compiler.getCachePath(sourceCode, filePath))
       } catch (error) {
         console.warn('Error reading compiled file', error.stack)
         return null
